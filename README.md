@@ -76,9 +76,5 @@ A: 先执行 `pip install -r requirements.txt`，再执行 `python -m playwright
 A: 取消 `submit_button` 的注释并检查按钮选择器是否匹配实际页面。
 
 ## 运行演示
-
-将您的演示GIF文件命名为demo.gif并放到项目根目录下，此图片将展示脚本的运行效果：
-
 ![运行演示](demo.gif)
 
-如需录制新的演示，请使用屏幕录制工具创建操作流程的GIF动画。
