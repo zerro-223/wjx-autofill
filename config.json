@@ -1,0 +1,13 @@
+{
+  "url": "https://www.wjx.top/vm/xxxx.aspx#",
+  "default_text": "默认填写",
+  "keyword_answers": [
+    {"keyword": "姓名", "answer": "张三"},
+    {"keyword": "学号", "answer": "20240001"},
+    {"keyword": "班级", "answer": "计科1班"},
+    {"keyword": "QQ", "answer": "123456"},
+    {"keyword": "邮箱", "answer": "example@qq.com"},
+    {"keyword": "联系方式", "answer": "13800000000"},
+    {"keyword": "电话", "answer": "13800000000"}
+  ]
+}
