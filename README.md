@@ -75,10 +75,10 @@ A: 先执行 `pip install -r requirements.txt`，再执行 `python -m playwright
 **Q: 需要自动提交怎么办？**
 A: 取消 `submit_button` 的注释并检查按钮选择器是否匹配实际页面。
 
-## 运行截图
+## 运行演示
 
-将截图文件放到当前目录，并在下方替换路径：
+将 GIF 文件放到当前目录，并在下方替换路径：
 
 ```markdown
-![运行截图](screenshot.png)
+![运行演示](demo.gif)
 ```
