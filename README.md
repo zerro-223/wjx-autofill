@@ -1,80 +1,117 @@
 # wjx-autofill
 
-基于 Playwright 的问卷星填空题自动填写脚本，支持按题干关键字匹配答案，题目顺序变化也不影响。
+这是一个基于 Playwright 的问卷星（WJX）填空题自动填写脚本。脚本通过题干关键字匹配答案，题目顺序变化不会影响填写结果，适用于常见的文本输入类型（text、email、tel、textarea 等）。
 
-## 亮点
+主要特性
 
-- 按题干关键字填写
-- 支持自定义 URL
-- 适配常见填空控件
+- 按题干关键字填充答案
+- 通过 `config.json` 配置 URL、默认值、关键字-答案对以及定时开始时间
+- 支持在页面打开后自动点击“立即报名/立即开始”等入口按钮（可配置选择器或匹配文本）
 
-## 快速开始
+快速开始
 
-```bash
+1. 安装依赖并安装 Playwright 浏览器：
+
+```powershell
 pip install -r requirements.txt
 python -m playwright install
 ```
 
-```bash
+2. 编辑 `config.json`（见下节配置说明），然后运行：
+
+```powershell
 python wjx_fill.py
 ```
 
-指定配置文件路径：
+可选参数
 
-```bash
-python wjx_fill.py --config "config.json"
-```
+- `--config <path>` 指定配置文件路径（默认：`config.json`）
+- `--headless` 使用无头模式运行（不显示浏览器界面）
 
-## 配置答案
+配置说明（config.json）
 
-在 `config.json` 中编辑 `keyword_answers`：
+建议至少填写 `url`。常用字段：
+
+- `url`（必需）：问卷页面 URL
+- `default_text`（可选）：未匹配到关键字时使用的默认文本
+- `start_time`（可选）：计划开始时间（见支持格式）
+- `page_load_timeout`（可选）：页面加载超时时间，单位毫秒（默认 30000）
+- `fill_delay`（可选）：每次填写之间的延迟，单位毫秒（默认 500）
+- `keyword_answers`（可选）：关键字与答案的数组，格式为 [{"keyword":"...","answer":"..."}, ...]
+- `entry_selectors`（可选）：进入问卷页时尝试点击的 CSS 选择器数组（优先匹配）
+- `entry_texts`（可选）：进入问卷页时尝试匹配并点击的可见文本数组（次优先）
+
+示例配置：
 
 ```json
 {
-  "url": "https://www.wjx.top/vm/xxxx.aspx#",
+  "url": "https://www.wjx.top/vm/xxxx.aspx",
   "default_text": "默认填写",
+  "start_time": "09:00",
+  "page_load_timeout": 30000,
+  "fill_delay": 500,
+  "entry_selectors": ["button.join", "#enter"],
+  "entry_texts": ["立即报名", "立即开始"],
   "keyword_answers": [
     {"keyword": "姓名", "answer": "张三"},
-    {"keyword": "学号", "answer": "20240001"},
-    {"keyword": "班级", "answer": "计科1班"},
-    {"keyword": "QQ", "answer": "123456"},
-    {"keyword": "邮箱", "answer": "example@qq.com"},
-    {"keyword": "联系方式", "answer": "13800000000"},
-    {"keyword": "电话", "answer": "13800000000"}
+    {"keyword": "学号", "answer": "20240001"}
   ]
 }
 ```
 
-## 目录结构
+关于 `start_time`（计划开始时间）
 
-```text
-wjx-autofill/
-  README.md
-  LICENSE
-  config.json
-  requirements.txt
-  wjx_fill.py
+- 支持 24 小时制时间，格式：
+  - `HH:MM`（例如 `09:00`，解释为当天的该时刻）
+  - `HH:MM:SS`（例如 `09:00:00`）
+  - `YYYY-MM-DD HH:MM` / `YYYY-MM-DD HH:MM:SS`（带日期）
+  - `now` 表示立即开始
+- 如果未设置或为空，脚本会立即开始；如果指定时间已过，脚本也会立即开始。
+
+关于入口点击（进入问卷）
+
+有些问卷打开后需要先点击一个“立即报名/立即开始”之类的按钮才能进入填写区域。脚本会按顺序尝试：
+
+1. 使用 `entry_selectors` 中的 CSS 选择器逐一查找并点击（优先）
+2. 使用 `entry_texts` 中的可见文本逐一查找并点击
+3. 使用内置的常见中文按钮文本（如“立即报名”）进行匹配并点击
+
+如果你知道按钮的 class 或 id，建议在 `entry_selectors` 中写精确选择器以保证点击成功。
+
+注意事项与最佳实践
+
+- 请确保你对目标问卷有操作权限并遵守平台规则。
+- 脚本默认只填写不自动提交，避免误操作。如需自动提交，请自行修改脚本添加提交按钮的选择器与点击逻辑（谨慎使用）。
+- 如果填写失败或未找到输入框，尝试增大 `page_load_timeout`、减小或增大 `fill_delay`，或调整 `TITLE_SELECTORS`、`entry_selectors`。
+
+常见问题
+
+Q: 页面没有被填写？
+
+A: 可能原因包括页面结构与默认选择器不匹配、页面未完全加载、按钮未被正确点击进入。建议手动在浏览器中用开发者工具定位题干元素与输入控件，并把合适的选择器或入口选择器写入 `config.json`。
+
+Q: 如何立即开始测试？
+
+A: 将 `start_time` 设为 `now` 或在 `config.json` 中删除 `start_time` 字段，脚本会立即开始。
+
+Q: 如何在无头模式运行？
+
+A: 添加命令行参数 `--headless`：
+
+```powershell
+python wjx_fill.py --headless
 ```
 
-## 注意事项
+示例运行（Windows PowerShell）
 
-- 请确保你对目标问卷有明确授权，并遵守平台条款。
-- 如需自动提交，取消 `submit_button` 的注释并确认按钮选择器匹配。
+```powershell
+pip install -r requirements.txt
+python -m playwright install
+python wjx_fill.py --config "config.json"
+```
 
-## 常见问题
+演示
 
-**Q: 打开页面后没有自动填写？**
-A: 可能是页面未完全加载或控件类型不是 `input[type='text']` / `textarea`。可增加等待时间，或把选择器改成页面实际使用的类型。
+仓库中包含 `demo.gif`，展示了运行效果。
 
-**Q: 题目顺序变了会影响吗？**
-A: 不会。脚本按“题干包含关键字”匹配，不依赖题目顺序。
-
-**Q: 运行报错 `playwright` 未安装？**
-A: 先执行 `pip install -r requirements.txt`，再执行 `python -m playwright install`。
-
-**Q: 需要自动提交怎么办？**
-A: 取消 `submit_button` 的注释并检查按钮选择器是否匹配实际页面。
-
-## 运行演示
-![运行演示](demo.gif)
 
