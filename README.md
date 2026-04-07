@@ -112,6 +112,6 @@ python wjx_fill.py --config "config.json"
 
 演示
 
-仓库中包含 `demo.gif`，展示了运行效果。
+![运行演示](demo.gif)
 
 
